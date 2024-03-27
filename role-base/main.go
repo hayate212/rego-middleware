@@ -31,6 +31,7 @@ func main() {
 }
 
 func RegoMiddleware() echo.MiddlewareFunc {
+	// ポリシー定義を事前にコンパイル
 	query, err := rego.New(
 		rego.Query("data.app.allow"),
 		rego.Module("policy.rego", Policy),
@@ -42,16 +43,21 @@ func RegoMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()
+
+			// OPA に渡す入力データを作成
 			input := map[string]interface{}{
 				"method": c.Request().Method,
 				"path":   c.Request().URL.Path,
 				"role":   c.Request().Header.Get("role"),
 			}
 			fmt.Printf("input: %v\n", input)
+
+			// 評価の実行
 			results, err := query.Eval(ctx, rego.EvalInput(input))
 			if err != nil {
 				return c.String(http.StatusInternalServerError, "Internal Server Error")
 			}
+			// 結果が許可されていない場合は 403 を返す
 			if !results.Allowed() {
 				return c.String(http.StatusForbidden, "Forbidden")
 			}
