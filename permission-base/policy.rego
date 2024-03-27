@@ -7,7 +7,7 @@ import future.keywords.contains
 default allow = false
 default rule := null
 allow if {
-    rule
+    rule != null
     authcheck
     count(missing_permissions) == 0
 }
@@ -43,6 +43,15 @@ genrule(auth, permissions) := x if {
 }
 
 # policy definitions
+rule = x if {
+    GET
+    "/api" == input.path
+
+    x := {
+        "auth": false,
+        "permissions": {}
+    }
+}
 rule = x if {
     GET
     "/api/users" == input.path

@@ -18,11 +18,14 @@ func main() {
 	e := echo.New()
 	api := e.Group("/api")
 	api.Use(RegoMiddleware())
+	api.GET("", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hello, World!")
+	})
 	api.GET("/users", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, "get users")
+		return c.String(http.StatusOK, "get users")
 	})
 	api.POST("/users", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, "create users")
+		return c.String(http.StatusOK, "create users")
 	})
 	e.Start(":8080")
 }
